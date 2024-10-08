@@ -1,15 +1,15 @@
-import express from "express";
-import dotenv from "dotenv";
-import mongoose from "mongoose";
-import userRouter from "./src/routers/user";
-import testRouter from './src/routers/test'
 import cors from "cors";
+import dotenv from "dotenv";
+import express from "express";
+import mongoose from "mongoose";
 import { verifyToken } from "./src/middlewares/verifyToken";
+import testRouter from "./src/routers/test";
+import userRouter from "./src/routers/user";
 
 dotenv.config();
 
-const port = process.env.APP_PORT || 3005;
-const dbUrl = process.env.DATABASE_URL || 'mongodb+srv://truongduydev2:Zozxmsto50wHV1ZF@cluster0.7fylm.mongodb.net';
+const port = process.env.APP_PORT;
+const dbUrl = process.env.DATABASE_URL;
 
 const app = express();
 
@@ -27,7 +27,7 @@ const connectDB = async () => {
 
 app.use("/auth", userRouter);
 app.use(verifyToken);
-app.use('/test', testRouter)
+app.use("/test", testRouter);
 
 connectDB().then(() => {
   app.listen(port, () => {
