@@ -2,7 +2,9 @@ import express from "express";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import userRouter from "./src/routers/user";
+import testRouter from './src/routers/test'
 import cors from "cors";
+import { verifyToken } from "./src/middlewares/verifyToken";
 
 dotenv.config();
 
@@ -24,6 +26,8 @@ const connectDB = async () => {
 };
 
 app.use("/auth", userRouter);
+app.use(verifyToken);
+app.use('/test', testRouter)
 
 connectDB().then(() => {
   app.listen(port, () => {
