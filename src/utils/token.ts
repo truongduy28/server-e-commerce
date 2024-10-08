@@ -1,7 +1,8 @@
 import jwt from 'jsonwebtoken'
+import { Types } from 'mongoose';
 
 interface TokenPayload {
-    _id: string;
+    _id: Types.ObjectId;
     email: string;
     role: number;
 }

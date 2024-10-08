@@ -75,5 +75,49 @@ const login = async (req: any, res: any) => {
   }
 };
 
+const loginWithGoogle = async (req: any, res: any) => {
+  const body = req.body;
+  const { email, name } = body;
+  try {
+    const user = await UserModel.findOne({ email });
 
-export { register, login };
+    if (user) {
+      const { _id, email: userEmail, role } = user
+      res.status(200).json({
+        message: "Login successfully!!",
+        data: {
+          user,
+          token: getToken({ _id, email: userEmail, role: role || 1 }),
+        },
+      });
+    } else {
+      const salt = await bcrypt.genSalt(10);
+      const hashpassword = await bcrypt.hash("password", salt);
+
+      body.password = hashpassword;
+
+      const newUser: any = new UserModel(body);
+      await newUser.save();
+
+      delete newUser._doc.password;
+
+      const { _id, email: userEmail, role } = newUser._doc
+      res.status(200).json({
+        message: "Login successfully!!",
+        data: {
+          ...newUser._doc,
+          token: getToken({ _id, email: userEmail, role: role || 1 }),
+        },
+      });
+    }
+
+
+  } catch (error: any) {
+    res.status(404).json({
+      message: error.message,
+    });
+  }
+};
+
+
+export { register, login, loginWithGoogle };
