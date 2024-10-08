@@ -6,8 +6,9 @@ import cors from "cors";
 
 dotenv.config();
 
-const port = process.env.APP_PORT || 3000;
-const dbUrl = process.env.DATABASE_URL;
+const port = process.env.APP_PORT || 3005;
+const dbUrl = process.env.DATABASE_URL || 'mongodb+srv://truongduydev2:Zozxmsto50wHV1ZF@cluster0.7fylm.mongodb.net';
+
 const app = express();
 
 app.use(express.json());
