@@ -77,9 +77,9 @@ const login = async (req: any, res: any) => {
 
 const loginWithGoogle = async (req: any, res: any) => {
   const body = req.body;
-  const { email, name } = body;
+  const { email, name, photoUrl } = body;
   try {
-    const user = await UserModel.findOne({ email });
+    const user = await UserModel.findOneAndUpdate({ email }, { name, photoUrl }, { new: true });
 
     if (user) {
       const { _id, email: userEmail, role } = user
