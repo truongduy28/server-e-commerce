@@ -43,4 +43,21 @@ const addNew = async (req: any, res: any) => {
   }
 };
 
-export { addNew, getSuppliers };
+const update = async (req: any, res: any) => {
+  const body = req.body;
+  const { id } = req.query;
+  try {
+    await SupplierModel.findByIdAndUpdate(id, body);
+
+    res.status(200).json({
+      message: 'Supplier updated',
+      data: [],
+    });
+  } catch (error: any) {
+    res.status(404).json({
+      message: error.message,
+    });
+  }
+};
+
+export { addNew, getSuppliers, update };

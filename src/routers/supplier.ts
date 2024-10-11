@@ -3,6 +3,7 @@ import * as supplierControllers from "../controllers/supplier";
 
 const router = Router();
 
-router.post("/add-new", supplierControllers.addNew);
 router.get("/", supplierControllers.getSuppliers);
+router.put("/update", supplierControllers.update);
+router.post("/add-new", supplierControllers.addNew);
 export default router;
