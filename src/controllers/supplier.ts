@@ -60,4 +60,29 @@ const update = async (req: any, res: any) => {
   }
 };
 
-export { addNew, getSuppliers, update };
+const exportToExcel = async (req: any, res: any) => {
+  const { startDate, endDate, columns } = req.body;
+
+  try {
+    const query: any = {
+      isDeleted: false,
+      ...(startDate && endDate ? { createdAt: { $gte: new Date(startDate), $lte: new Date(endDate) } } : {})
+    };
+    const items = await SupplierModel.find(query).select(columns.join(' '));
+
+    res.status(200).json({
+      data: items
+    })
+
+  } catch (error: any) {
+    console.error('Error generating Excel file:', error); // Log the error for debugging
+    res.status(500).json({
+      message: 'An error occurred while generating the file.',
+      error: error.message,
+    });
+  }
+};
+
+
+export { addNew, exportToExcel, getSuppliers, update };
+
