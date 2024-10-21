@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import express from "express";
 import mongoose from "mongoose";
 import { verifyToken } from "./src/middlewares/verifyToken";
-import { supplierRouter, userRouter } from "./src/routers";
+import { categoryRouter, supplierRouter, userRouter } from "./src/routers";
 
 dotenv.config();
 
@@ -26,7 +26,7 @@ const connectDB = async () => {
 
 app.use("/auth", userRouter);
 app.use(verifyToken);
-// app.use("/test", testRouter);
+app.use("/category", categoryRouter);
 app.use("/supplier", supplierRouter);
 
 connectDB().then(() => {
