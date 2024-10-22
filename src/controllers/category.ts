@@ -56,7 +56,6 @@ const deleteCategories = async (req: any, res: any) => {
     const { id, isDeleted } = req.query;
     try {
         // await findAndRemoveCategoryInProducts(id);
-        console.log({ id, isDeleted });
         await CategoryModel.findByIdAndUpdate(id, { isDeleted });
         await res.status(200).json({
             message: 'Category deleted!!!',
@@ -68,7 +67,21 @@ const deleteCategories = async (req: any, res: any) => {
     }
 };
 
-export { addCategory, getCategories, deleteCategories };
+const updateCategory = async (req: any, res: any) => {
+    const { id } = req.query;
+    try {
+        await CategoryModel.findByIdAndUpdate(id, { ...req.body });
+        await res.status(200).json({
+            message: 'Category updated!!!',
+        });
+    } catch (error: any) {
+        res.status(404).json({
+            message: error.message,
+        });
+    }
+};
+
+export { addCategory, getCategories, deleteCategories, updateCategory };
 
 // 22/10/2024 
 // TODO: not yet have Product-Model in server so can't remove category in products
