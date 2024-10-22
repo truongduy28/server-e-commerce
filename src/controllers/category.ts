@@ -52,5 +52,59 @@ const getCategories = async (req: any, res: any) => {
     }
 };
 
+const deleteCategories = async (req: any, res: any) => {
+    const { id, isDeleted } = req.query;
+    try {
+        // await findAndRemoveCategoryInProducts(id);
+        console.log({ id, isDeleted });
+        await CategoryModel.findByIdAndUpdate(id, { isDeleted });
+        await res.status(200).json({
+            message: 'Category deleted!!!',
+        });
+    } catch (error: any) {
+        res.status(404).json({
+            message: error.message,
+        });
+    }
+};
 
-export { addCategory, getCategories };
+export { addCategory, getCategories, deleteCategories };
+
+// 22/10/2024 
+// TODO: not yet have Product-Model in server so can't remove category in products
+
+// const findAndRemoveCategoryInProducts = async (id: string) => {
+//     // const item = await CategoryModel.findById(id);
+//     const items = await CategoryModel.find({ parentId: id });
+
+//     if (items.length > 0) {
+//         items.forEach(
+//             async (item: any) => await findAndRemoveCategoryInProducts(item._id)
+//         );
+//     }
+
+//     await handleRemoveCategoryInProducts(id);
+   
+// };
+
+
+// const handleRemoveCategoryInProducts = async (id: string) => {
+//     await CategoryModel.findByIdAndDelete(id);
+//     const products = await ProductModel.find({ categories: { $all: id } });
+
+//     if (products && products.length > 0) {
+//         products.forEach(async (item: any) => {
+//             const cats = item._doc.categories;
+
+//             const index = cats.findIndex((element: string) => element === id);
+
+//             if (index !== -1) {
+//                 cats.splice(index, 1);
+//             }
+
+//             await ProductModel.findByIdAndUpdate(item._id, {
+//                 categories: cats,
+//             });
+//         });
+//     }
+// };

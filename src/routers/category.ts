@@ -5,5 +5,6 @@ const router = Router()
 
 router.post("/add-new", categoryControllers.addCategory)
 router.get("/", categoryControllers.getCategories)
+router.delete("/delete", categoryControllers.deleteCategories)
 
 export default router
