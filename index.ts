@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import express from "express";
 import mongoose from "mongoose";
 import { verifyToken } from "./src/middlewares/verifyToken";
-import { categoryRouter, supplierRouter, userRouter } from "./src/routers";
+import { categoryRouter, productRouter, supplierRouter, userRouter } from "./src/routers";
 
 dotenv.config();
 
@@ -28,6 +28,7 @@ app.use("/auth", userRouter);
 app.use(verifyToken);
 app.use("/category", categoryRouter);
 app.use("/supplier", supplierRouter);
+app.use("/product", productRouter);
 
 connectDB().then(() => {
   app.listen(port, () => {
