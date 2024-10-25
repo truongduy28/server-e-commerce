@@ -1,4 +1,4 @@
-import mongoose, { Schema } from 'mongoose';
+import mongoose, { Schema, Types } from 'mongoose';
 
 const scheme = new Schema({
     title: {
@@ -7,7 +7,10 @@ const scheme = new Schema({
     },
     slug: String,
     description: String,
-    categories: [String],
+    categories: [{
+        type: Types.ObjectId,
+        ref: 'categories',
+    }],
     supplier: {
         require: true,
         type: String,
