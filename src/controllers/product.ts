@@ -24,27 +24,34 @@ const addProduct = async (req: any, res: any) => {
 const getProducts = async (req: any, res: any) => {
   const { page, pageSize } = req.query;
 
-  const filter: any = {};
-
-  filter.isDeleted = false;
+  const filter: any = { isDeleted: false };
 
   try {
     const skip = (page - 1) * pageSize;
-
     const products = await ProductModel.find(filter)
       .skip(skip)
       .limit(pageSize)
-      .populate("categories", "title");
+      .populate("categories", "title")
+      .lean();
+
+    const items = await Promise.all(
+      products.map(async (product) => {
+        const subProducts = await SubProductModel.find({
+          productId: product._id,
+          isDeleted: false,
+        }).lean();
+
+        return { ...product, subProducts };
+      })
+    );
 
     const total = products.length;
-
-    const items: any = [];
 
     res.status(200).json({
       message: "Products",
       data: {
         total,
-        items: products,
+        items,
       },
     });
   } catch (error: any) {
