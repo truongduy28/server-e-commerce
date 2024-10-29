@@ -45,7 +45,9 @@ const getProducts = async (req: any, res: any) => {
       })
     );
 
-    const total = products.length;
+    const total = await ProductModel.find({
+      isDeleted: false,
+    }).countDocuments();
 
     res.status(200).json({
       message: "Products",
