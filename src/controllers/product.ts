@@ -159,11 +159,48 @@ const addSubProduct = async (req: any, res: any) => {
   }
 };
 
+
+const getSubProductFilters = async (req: any, res: any) => {
+  try {
+    // Get distinct sizes, colors, and price range for subproducts
+    const [sizes, colors, priceRange] = await Promise.all([
+      SubProductModel.distinct('size', { isDeleted: false }),
+      SubProductModel.distinct('color', { isDeleted: false }),
+      SubProductModel.aggregate([
+        { $match: { isDeleted: false } },
+        {
+          $group: {
+            _id: null,
+            minPrice: { $min: '$price' },
+            maxPrice: { $max: '$price' }
+          }
+        }
+      ])
+    ]);
+
+    // Prepare the response data
+    const filters = {
+      sizes,
+      colors,
+      prices: {
+        start: priceRange[0]?.minPrice || 0,
+        end: priceRange[0]?.maxPrice || 0
+      }
+    };
+
+    return res.json({ message: "success", data: filters });
+  } catch (error) {
+    console.error('Error fetching filters:', error);
+    return res.status(500).json({ message: "Error fetching filters" });
+  }
+};
+
+
 export {
   addProduct,
   addSubProduct,
   getProductDetail,
   getProducts,
   removeProduct,
-  updateProduct,
+  updateProduct, getSubProductFilters
 };

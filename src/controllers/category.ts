@@ -81,7 +81,25 @@ const updateCategory = async (req: any, res: any) => {
     }
 };
 
-export { addCategory, getCategories, deleteCategories, updateCategory };
+const getCategoryFilters = async (req: any, res: any) => {
+    try {
+        const categories = await CategoryModel.find({
+            $or: [{ isDeleted: false }, { isDeleted: null }],
+        }).select('_id title parentId');
+
+        res.status(200).json({
+            message: 'Get category filters is successfully',
+            data: categories,
+        });
+    } catch (error: any) {
+        res.status(404).json({
+            message: error.message,
+        });
+    }
+};
+
+
+export { addCategory, getCategories, deleteCategories, updateCategory, getCategoryFilters };
 
 // 22/10/2024 
 // TODO: not yet have Product-Model in server so can't remove category in products

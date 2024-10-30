@@ -10,4 +10,6 @@ router.delete("/delete", productControllers.removeProduct);
 
 router.post("/add-sub-product", productControllers.addSubProduct);
 
+router.get('/sub-product-filters', productControllers.getSubProductFilters)
+
 export default router;

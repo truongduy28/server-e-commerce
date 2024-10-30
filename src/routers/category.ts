@@ -7,5 +7,6 @@ router.post("/add-new", categoryControllers.addCategory)
 router.get("/", categoryControllers.getCategories)
 router.delete("/delete", categoryControllers.deleteCategories)
 router.put("/update", categoryControllers.updateCategory)
+router.get("/category-filters", categoryControllers.getCategoryFilters)
 
 export default router
