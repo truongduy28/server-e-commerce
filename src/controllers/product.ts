@@ -1,5 +1,8 @@
+import { Request } from "express";
+import { GetMinAndMaxPrice, ProductFilterParams } from "../interfaces/product";
 import ProductModel from "../models/ProductModel";
 import SubProductModel from "../models/SubProductModel";
+import { toArray, toJson } from "../utils/type";
 
 // MAIN PRODUCT CONTROLLERS
 const addProduct = async (req: any, res: any) => {
@@ -21,47 +24,93 @@ const addProduct = async (req: any, res: any) => {
   }
 };
 
-const getProducts = async (req: any, res: any) => {
-  const { page, pageSize } = req.query;
 
-  const filter: any = { isDeleted: false };
+const getProducts = async (req: Request<any, any, any, ProductFilterParams, any>, res: any) => {
+  const { page = 1, pageSize = 10, categories, colors, sizes, price, title } = req.query;
+  const rangePriceDB = await getMinAndMaxPrice();
+
+  // Parsing filters from query
+  const parsedCategories = categories ? toArray(categories) : [];
+  const parsedColors = colors ? toArray(colors) : [];
+  const parsedSizes = sizes ? toArray(sizes) : [];
+  const parsedPrice = price ? toJson(price) : null;
+  const parsedTitle = title || "";
+
+  const subProductFilter: any = {};
+  const productFilter: any = { isDeleted: false };
+
+  // Set filters for colors, sizes, and price range
+  if (parsedColors.length) subProductFilter.color = { $in: parsedColors };
+  if (parsedSizes.length) subProductFilter.size = { $in: parsedSizes };
+  if (parsedPrice && parsedPrice.start && parsedPrice.end) {
+    subProductFilter.price = { $gte: parsedPrice.start, $lte: parsedPrice.end };
+  }
+
+  // Retrieve product IDs that match sub-product filters if needed
+  let productIds: string[] = [];
+  if (parsedColors.length || parsedSizes.length || parsedPrice) {
+    const matchingSubProducts = await SubProductModel.find(subProductFilter).distinct('productId');
+    if (matchingSubProducts.length) {
+      productIds = [...new Set(matchingSubProducts)];
+    } else {
+      return res.status(200).json({
+        message: "Products",
+        data: {
+          total: 0,
+          items: [],
+          rangePrice: {
+            min: rangePriceDB.minPrice,
+            max: rangePriceDB.maxPrice,
+          },
+        },
+      });
+    }
+  }
+
+  // Apply filters to products
+  if (productIds.length) productFilter._id = { $in: productIds };
+  if (parsedCategories.length) productFilter.categories = { $in: parsedCategories };
+  if (parsedTitle) productFilter.slug = { $regex: parsedTitle };
 
   try {
     const skip = (page - 1) * pageSize;
-    const products = await ProductModel.find(filter)
+
+    // Fetch filtered products with pagination
+    const products = await ProductModel.find(productFilter)
       .skip(skip)
       .limit(pageSize)
       .populate("categories", "title")
       .lean();
 
-    const items = await Promise.all(
-      products.map(async (product) => {
-        const subProducts = await SubProductModel.find({
-          productId: product._id,
-          isDeleted: false,
-        }).lean();
+    // Fetch and attach subproducts for each product in a single query
+    const productIdsForSubProducts = products.map(product => product._id);
+    const subProducts = await SubProductModel.find({ productId: { $in: productIdsForSubProducts }, isDeleted: false }).lean();
 
-        return { ...product, subProducts };
-      })
-    );
+    // Map subProducts to their respective products
+    const productsWithSubProducts = products.map(product => ({
+      ...product,
+      subProducts: subProducts.filter(sub => sub.productId.toString() === product._id.toString()),
+    }));
 
-    const total = await ProductModel.find({
-      isDeleted: false,
-    }).countDocuments();
+    // Get the total count for pagination
+    const total = await ProductModel.countDocuments(productFilter);
 
     res.status(200).json({
-      message: "Products",
+      message: "Get products with sub-products from DB",
       data: {
         total,
-        items,
+        items: productsWithSubProducts,
+        rangePrice: {
+          min: rangePriceDB.minPrice,
+          max: rangePriceDB.maxPrice,
+        },
       },
     });
   } catch (error: any) {
-    res.status(404).json({
-      message: error.message,
-    });
+    res.status(404).json({ message: error.message });
   }
 };
+
 
 const getProductDetail = async (req: any, res: any) => {
   const { id } = req.query;
@@ -195,12 +244,31 @@ const getSubProductFilters = async (req: any, res: any) => {
   }
 };
 
+const getMinAndMaxPrice = async (): Promise<GetMinAndMaxPrice> => {
+
+  const priceRange = await SubProductModel.aggregate([
+    { $match: { isDeleted: false } },
+    {
+      $group: {
+        _id: null,
+        minPrice: { $min: '$price' },
+        maxPrice: { $max: '$price' }
+      }
+    }
+  ]);
+
+  return {
+    minPrice: priceRange[0]?.minPrice || 0,
+    maxPrice: priceRange[0]?.maxPrice || 0
+  } as unknown as GetMinAndMaxPrice
+}
+
 
 export {
   addProduct,
   addSubProduct,
   getProductDetail,
-  getProducts,
-  removeProduct,
-  updateProduct, getSubProductFilters
+  getProducts, getSubProductFilters, removeProduct,
+  updateProduct
 };
+
