@@ -240,6 +240,23 @@ const updateSubProduct = async (req: any, res: any) => {
   }
 };
 
+const removeSubProduct = async (req: any, res: any) => {
+  const { id } = req.query;
+  try {
+    await SubProductModel.findByIdAndUpdate(id, {
+      isDeleted: true,
+    });
+
+    res.status(200).json({
+      message: 'Removed!!!',
+    });
+  } catch (error: any) {
+    res.status(404).json({
+      message: error.message,
+    });
+  }
+};
+
 const getSubProductFilters = async (req: any, res: any) => {
   try {
     // Get distinct sizes, colors, and price range for subproducts
@@ -299,7 +316,6 @@ export {
   addProduct,
   addSubProduct,
   getProductDetail,
-  getProducts, getSubProduct, getSubProductFilters, removeProduct,
-  updateProduct, updateSubProduct
+  getProducts, getSubProduct, getSubProductFilters, removeProduct, removeSubProduct, updateProduct, updateSubProduct
 };
 

@@ -14,6 +14,7 @@ router.post("/add-sub-product", productControllers.addSubProduct);
 router.get('/sub-product-filters', productControllers.getSubProductFilters)
 router.get('/sub-product', productControllers.getSubProduct)
 router.put('/update-sub-product', productControllers.updateSubProduct)
+router.delete('/delete-sub-product', productControllers.removeSubProduct)
 
 export default router;
 
