@@ -208,6 +208,37 @@ const addSubProduct = async (req: any, res: any) => {
   }
 };
 
+const getSubProduct = async (req: any, res: any) => {
+  const { id } = req.query;
+  try {
+    const item = await SubProductModel.findById(id)
+    if (!item) throw new Error("Not found sub product with id: " + id);
+    res.status(200).json({
+      message: "Get successfully sub product",
+      item,
+    });
+  } catch (error: any) {
+    res.status(404).json({
+      message: error.message,
+    });
+  }
+};
+
+const updateSubProduct = async (req: any, res: any) => {
+  const { id } = req.query;
+  const body = req.body;
+  try {
+    await SubProductModel.findByIdAndUpdate(id, body);
+
+    res.status(200).json({
+      message: 'Sub product updated successfully!!!',
+    });
+  } catch (error: any) {
+    res.status(404).json({
+      message: error.message,
+    });
+  }
+};
 
 const getSubProductFilters = async (req: any, res: any) => {
   try {
@@ -268,7 +299,7 @@ export {
   addProduct,
   addSubProduct,
   getProductDetail,
-  getProducts, getSubProductFilters, removeProduct,
-  updateProduct
+  getProducts, getSubProduct, getSubProductFilters, removeProduct,
+  updateProduct, updateSubProduct
 };
 
