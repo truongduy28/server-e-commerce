@@ -24,9 +24,19 @@ const addProduct = async (req: any, res: any) => {
   }
 };
 
-
-const getProducts = async (req: Request<any, any, any, ProductFilterParams, any>, res: any) => {
-  const { page = 1, pageSize = 10, categories, colors, sizes, price, title } = req.query;
+const getProducts = async (
+  req: Request<any, any, any, ProductFilterParams, any>,
+  res: any
+) => {
+  const {
+    page = 1,
+    pageSize = 10,
+    categories,
+    colors,
+    sizes,
+    price,
+    title,
+  } = req.query;
   const rangePriceDB = await getMinAndMaxPrice();
 
   // Parsing filters from query
@@ -49,7 +59,9 @@ const getProducts = async (req: Request<any, any, any, ProductFilterParams, any>
   // Retrieve product IDs that match sub-product filters if needed
   let productIds: string[] = [];
   if (parsedColors.length || parsedSizes.length || parsedPrice) {
-    const matchingSubProducts = await SubProductModel.find(subProductFilter).distinct('productId');
+    const matchingSubProducts = await SubProductModel.find(
+      subProductFilter
+    ).distinct("productId");
     if (matchingSubProducts.length) {
       productIds = [...new Set(matchingSubProducts)];
     } else {
@@ -69,7 +81,8 @@ const getProducts = async (req: Request<any, any, any, ProductFilterParams, any>
 
   // Apply filters to products
   if (productIds.length) productFilter._id = { $in: productIds };
-  if (parsedCategories.length) productFilter.categories = { $in: parsedCategories };
+  if (parsedCategories.length)
+    productFilter.categories = { $in: parsedCategories };
   if (parsedTitle) productFilter.slug = { $regex: parsedTitle };
 
   try {
@@ -83,13 +96,18 @@ const getProducts = async (req: Request<any, any, any, ProductFilterParams, any>
       .lean();
 
     // Fetch and attach subproducts for each product in a single query
-    const productIdsForSubProducts = products.map(product => product._id);
-    const subProducts = await SubProductModel.find({ productId: { $in: productIdsForSubProducts }, isDeleted: false }).lean();
+    const productIdsForSubProducts = products.map((product) => product._id);
+    const subProducts = await SubProductModel.find({
+      productId: { $in: productIdsForSubProducts },
+      isDeleted: false,
+    }).lean();
 
     // Map subProducts to their respective products
-    const productsWithSubProducts = products.map(product => ({
+    const productsWithSubProducts = products.map((product) => ({
       ...product,
-      subProducts: subProducts.filter(sub => sub.productId.toString() === product._id.toString()),
+      subProducts: subProducts.filter(
+        (sub) => sub.productId.toString() === product._id.toString()
+      ),
     }));
 
     // Get the total count for pagination
@@ -110,7 +128,6 @@ const getProducts = async (req: Request<any, any, any, ProductFilterParams, any>
     res.status(404).json({ message: error.message });
   }
 };
-
 
 const getProductDetail = async (req: any, res: any) => {
   const { id } = req.query;
@@ -211,7 +228,7 @@ const addSubProduct = async (req: any, res: any) => {
 const getSubProduct = async (req: any, res: any) => {
   const { id } = req.query;
   try {
-    const item = await SubProductModel.findById(id)
+    const item = await SubProductModel.findById(id);
     if (!item) throw new Error("Not found sub product with id: " + id);
     res.status(200).json({
       message: "Get successfully sub product",
@@ -231,7 +248,7 @@ const updateSubProduct = async (req: any, res: any) => {
     await SubProductModel.findByIdAndUpdate(id, body);
 
     res.status(200).json({
-      message: 'Sub product updated successfully!!!',
+      message: "Sub product updated successfully!!!",
     });
   } catch (error: any) {
     res.status(404).json({
@@ -248,7 +265,7 @@ const removeSubProduct = async (req: any, res: any) => {
     });
 
     res.status(200).json({
-      message: 'Removed!!!',
+      message: "Removed!!!",
     });
   } catch (error: any) {
     res.status(404).json({
@@ -261,18 +278,18 @@ const getSubProductFilters = async (req: any, res: any) => {
   try {
     // Get distinct sizes, colors, and price range for subproducts
     const [sizes, colors, priceRange] = await Promise.all([
-      SubProductModel.distinct('size', { isDeleted: false }),
-      SubProductModel.distinct('color', { isDeleted: false }),
+      SubProductModel.distinct("size", { isDeleted: false }),
+      SubProductModel.distinct("color", { isDeleted: false }),
       SubProductModel.aggregate([
         { $match: { isDeleted: false } },
         {
           $group: {
             _id: null,
-            minPrice: { $min: '$price' },
-            maxPrice: { $max: '$price' }
-          }
-        }
-      ])
+            minPrice: { $min: "$price" },
+            maxPrice: { $max: "$price" },
+          },
+        },
+      ]),
     ]);
 
     // Prepare the response data
@@ -281,41 +298,44 @@ const getSubProductFilters = async (req: any, res: any) => {
       colors,
       prices: {
         start: priceRange[0]?.minPrice || 0,
-        end: priceRange[0]?.maxPrice || 0
-      }
+        end: priceRange[0]?.maxPrice || 0,
+      },
     };
 
     return res.json({ message: "success", data: filters });
   } catch (error) {
-    console.error('Error fetching filters:', error);
+    console.error("Error fetching filters:", error);
     return res.status(500).json({ message: "Error fetching filters" });
   }
 };
 
 const getMinAndMaxPrice = async (): Promise<GetMinAndMaxPrice> => {
-
   const priceRange = await SubProductModel.aggregate([
     { $match: { isDeleted: false } },
     {
       $group: {
         _id: null,
-        minPrice: { $min: '$price' },
-        maxPrice: { $max: '$price' }
-      }
-    }
+        minPrice: { $min: "$price" },
+        maxPrice: { $max: "$price" },
+      },
+    },
   ]);
 
   return {
     minPrice: priceRange[0]?.minPrice || 0,
-    maxPrice: priceRange[0]?.maxPrice || 0
-  } as unknown as GetMinAndMaxPrice
-}
-
+    maxPrice: priceRange[0]?.maxPrice || 0,
+  } as unknown as GetMinAndMaxPrice;
+};
 
 export {
   addProduct,
   addSubProduct,
   getProductDetail,
-  getProducts, getSubProduct, getSubProductFilters, removeProduct, removeSubProduct, updateProduct, updateSubProduct
+  getProducts,
+  getSubProduct,
+  getSubProductFilters,
+  removeProduct,
+  removeSubProduct,
+  updateProduct,
+  updateSubProduct,
 };
-
