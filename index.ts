@@ -7,6 +7,7 @@ import {
   categoryRouter,
   customerRouter,
   productRouter,
+  promotionRouter,
   supplierRouter,
   userRouter,
 } from "./src/routers";
@@ -36,6 +37,7 @@ app.use(verifyToken);
 app.use("/category", categoryRouter);
 app.use("/supplier", supplierRouter);
 app.use("/product", productRouter);
+app.use("/promotion", promotionRouter);
 
 connectDB().then(() => {
   app.listen(port, () => {
