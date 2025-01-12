@@ -33,11 +33,11 @@ const connectDB = async () => {
 
 app.use("/auth", userRouter);
 app.use("/customer", customerRouter);
+app.use("/promotion", promotionRouter);
 app.use(verifyToken);
 app.use("/category", categoryRouter);
 app.use("/supplier", supplierRouter);
 app.use("/product", productRouter);
-app.use("/promotion", promotionRouter);
 
 connectDB().then(() => {
   app.listen(port, () => {
